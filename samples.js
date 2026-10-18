@@ -2,49 +2,66 @@ import { dateAfter, demoDetections, normalizeProduct } from './domain.js';
 
 const product = (name, quantity = 1, category = 'Pantry', location = 'Fridge', days = 14, icon = 'box') =>
   normalizeProduct({ name, quantity, category, location, days, icon });
-const sample = (number, title, width, height, products) => ({
-  id: `sample-${number}`, title, file: `assets/Media (${number}).jpg`, width, height, products
+const sample = (number, title, width, height, products, rotation = 0) => ({
+  id: `sample-${number}`, title, file: `assets/Media (${number}).jpg`, width, height, products, rotation
 });
+const fridgeProduct = (brand, name, storageShelf, quantity = 1, category = 'Pantry', days = 14, icon = 'box') =>
+  normalizeProduct({ brand, name, storageShelf, storageSpot: 'kitchen-fridge', quantity, category, location: 'Fridge', days, icon });
 
 export const SAMPLES = [
   { id: 'basket', title: 'Chocolate shopping basket', file: 'assets/groceries.jpg', width: 768, height: 1365, products: null },
   sample(5, 'Fridge shelves & condiments', 2048, 1152, [
-    product('Lee Kum Kee minced garlic', 2), product("Lawry's garlic salt"), product('Yellow mustard'),
-    product('Starbucks coffee', 1, 'Beverages', 'Fridge', 7, 'coffee'),
-    product('Vitasoy drink (check variety)', 1, 'Beverages'), product('Tofu packs (check variety)', 2),
-    product('Vita lemon tea cartons (check count)', 2, 'Beverages', 'Fridge', 30, 'tea'),
-    product('Vita Ceylon lemon tea (check count)', 3, 'Beverages', 'Fridge', 30, 'tea'),
-    product('Ito En matcha LOVE (check count)', 2, 'Beverages', 'Fridge', 30, 'tea'),
-    product('Fresh milk carton', 1, 'Dairy & eggs', 'Fridge', 7, 'milk'),
-    product('Apple juice carton', 1, 'Beverages', 'Fridge', 7, 'apple'),
-    product('Ito En green tea', 1, 'Beverages', 'Fridge', 30, 'tea'),
-    product('Bottled drinks (check labels)', 3, 'Beverages')
+    fridgeProduct('GNC', 'Vitamin gummy candy', 'top', 1, 'Pantry', 180, 'candy'),
+    fridgeProduct('Vitasoy', 'Coffee-flavoured soy milk', 'top', 1, 'Beverages', 14, 'milk'),
+    fridgeProduct('Lee Kum Kee', 'Garlic chili sauce', 'top'),
+    fridgeProduct('Lee Kum Kee', 'Garlic paste', 'top'),
+    fridgeProduct('Spring Light', 'Yellow chili sauce', 'top'),
+    fridgeProduct("Lawry's", 'Garlic salt', 'top'),
+    fridgeProduct('Starbucks', 'Coffee Craft Americano (pack)', 'top', 1, 'Beverages', 7, 'coffee'),
+    fridgeProduct('Unbranded', 'Fish cake', 'middle', 1, 'Pantry', 3),
+    fridgeProduct('Unbranded', 'Chicken breast (pack)', 'middle', 1, 'Pantry', 2),
+    fridgeProduct('Vita', 'VLT lemon tea', 'middle', 1, 'Beverages', 30, 'tea'),
+    fridgeProduct('OKF', 'Korea watermelon drink', 'middle', 1, 'Beverages', 14),
+    fridgeProduct('Kara', 'Nata de coco', 'middle'),
+    fridgeProduct('Sansui', 'Soy milk (250 ml carton)', 'middle', 1, 'Beverages', 7, 'milk'),
+    fridgeProduct('Sansui', 'Soft tofu', 'middle', 1, 'Pantry', 3),
+    fridgeProduct('Vita', 'VLT lemon tea', 'bottom', 1, 'Beverages', 30, 'tea'),
+    fridgeProduct('Vita', 'Ceylon lemon tea', 'bottom', 4, 'Beverages', 30, 'tea'),
+    fridgeProduct('Ito En', 'Matcha LOVE', 'bottom', 4, 'Beverages', 30, 'tea'),
+    fridgeProduct('Trappist Dairy', 'Milk (946 ml carton)', 'bottom', 1, 'Dairy & eggs', 7, 'milk'),
+    fridgeProduct('Ito En', 'Green tea', 'bottom', 1, 'Beverages', 30, 'tea'),
+    fridgeProduct('Juver', 'Disfruta apple nectar', 'bottom', 1, 'Beverages', 7, 'apple')
   ]),
   sample(3, 'Vegetables & corn', 2048, 1536, [
     product('Leafy greens (bag)', 1, 'Produce', 'Fridge', 3, 'leaf'),
     product('Leeks (check count)', 2, 'Produce', 'Fridge', 5, 'leaf'),
     product('Corn portions', 2, 'Produce', 'Fridge', 3),
-    product('Baby corn (bag)', 1, 'Produce', 'Fridge', 3),
-    product('Prepared food containers (check contents)', 2),
-    product('Cabbage', 1, 'Produce', 'Fridge', 7, 'leaf')
+    product('Ginger (bag)', 1, 'Produce', 'Fridge', 14),
+    product('Coriander', 1, 'Produce', 'Fridge', 3, 'leaf'),
+    product('Cabbage', 1, 'Produce', 'Fridge', 7, 'leaf'),
+    product('Indian lettuce', 1, 'Produce', 'Fridge', 3, 'leaf'),
+    normalizeProduct({ brand: 'Hachi', name: 'Large-size Italian spaghetti sauce with bacon', quantity: 1, category: 'Pantry', location: 'Fridge', days: 14, icon: 'pasta', reviewNote: 'Partly visible package; confirm other ingredients and pack size from the label.' })
   ]),
   sample(9, 'Frozen rice & chicken', 1152, 2048, [
     product('CJ chicken pilaf', 1, 'Pantry', 'Freezer', 90, 'rice'),
     product('CJ mushroom pilaf', 1, 'Pantry', 'Freezer', 90, 'rice'),
-    product('Sous vide chicken steak (check variety)', 2, 'Pantry', 'Freezer', 90),
-    product('Frozen dumplings (check variety)', 1, 'Pantry', 'Freezer', 90),
-    product('Frozen radish cake', 1, 'Pantry', 'Freezer', 90)
-  ]),
+    normalizeProduct({ brand: 'Tender Max', name: 'Sous vide chicken steak', quantity: 3, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' }),
+    normalizeProduct({ brand: 'Osaka Ohsho', name: 'Dumplings', quantity: 1, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' }),
+    normalizeProduct({ brand: 'Fuyan', name: 'Black sesame ice cream', quantity: 1, category: 'Dairy & eggs', location: 'Freezer', days: 90, icon: 'yogurt' }),
+    normalizeProduct({ brand: 'Amoy', name: 'Black Gold salted egg yolk paste buns', quantity: 1, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' }),
+    normalizeProduct({ brand: 'Osaka Ohsho', name: 'Crispy Bite gyoza (18 pcs)', quantity: 1, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' })
+  ], 90),
   sample(7, 'Tea, milk & juice', 2048, 1152, [
     product('Vita lemon tea (check count)', 2, 'Beverages', 'Fridge', 30, 'tea'),
     product('Vita Ceylon lemon tea (check count)', 4, 'Beverages', 'Fridge', 30, 'tea'),
     product('Ito En matcha LOVE', 4, 'Beverages', 'Fridge', 30, 'tea'),
     product('Ito En green tea', 1, 'Beverages', 'Fridge', 30, 'tea'),
-    product('Fresh milk carton', 1, 'Dairy & eggs', 'Fridge', 7, 'milk'),
-    product('Apple juice carton', 1, 'Beverages', 'Fridge', 7, 'apple')
+    normalizeProduct({ ...product('Milk (946 ml carton)', 1, 'Dairy & eggs', 'Fridge', 7, 'milk'), brand: 'Trappist Dairy' }),
+    normalizeProduct({ ...product('Disfruta apple nectar', 1, 'Beverages', 'Fridge', 7, 'apple'), brand: 'Juver' })
   ]),
   sample(8, 'Toast spreads, sauces & eggs', 2048, 1536, [
-    product('Garlic toast spread'), product('Sugar butter toast spread'),
+    normalizeProduct({ ...product('Garlic toast spread'), brand: 'Kewpie Aohata' }),
+    normalizeProduct({ ...product('Sugar butter toast spread'), brand: 'Kewpie Aohata' }),
     product('Snow Brand Hokkaido condensed milk', 1, 'Dairy & eggs', 'Fridge', 14, 'milk'),
     product('Gyu-Kaku rich soy sauce'), product('Gyu-Kaku soy sauce'),
     product('Eggs (visible count; check tray)', 5, 'Dairy & eggs', 'Fridge', 14, 'eggs')
@@ -57,12 +74,12 @@ export const SAMPLES = [
   sample(4, 'Milk cartons & canned drinks', 2048, 1536, [
     product('Dutch Lady full cream milk (check count)', 6, 'Dairy & eggs', 'Fridge', 7, 'milk'),
     product('Vita chocolate milk', 1, 'Beverages', 'Fridge', 7, 'milk'),
-    product('Canned drinks (check labels/count)', 5, 'Beverages'),
-    product('Bagged fruit (check type)', 1, 'Produce', 'Fridge', 5, 'apple'),
-    product('Prepared food container (check contents)')
+    normalizeProduct({ ...product('Cola (cans; check count)', 5, 'Beverages', 'Fridge', 14, 'can'), brand: 'Coca-Cola' }),
+    product('Oranges (bag)', 1, 'Produce', 'Fridge', 5, 'apple'),
+    product('Mooncake (pack)')
   ]),
   sample(2, 'Crisper greens, cabbage & eggs', 2048, 1536, [
-    product('Leafy greens (bag)', 1, 'Produce', 'Fridge', 3, 'leaf'),
+    product('Indian lettuce (bag)', 1, 'Produce', 'Fridge', 3, 'leaf'),
     product('Cabbage', 1, 'Produce', 'Fridge', 7, 'leaf'),
     product('Eggs (check tray count)', 6, 'Dairy & eggs', 'Fridge', 14, 'eggs'),
     product('Sliced vegetables (container)', 1, 'Produce', 'Fridge', 3)
@@ -140,17 +157,20 @@ const SAMPLE_BOXES = {
   ],
   'sample-3': [
     [1, 19, 23, 59], [20, 31, 24, 25], [48, 16, 32, 23],
-    [38, 41, 32, 32], [51, 30, 48, 29], [46, 76, 37, 24]
+    [38, 41, 32, 32], [78, 16, 22, 43], [46, 76, 37, 24],
+    [12, 79, 36, 21], [82, 65, 18, 35]
   ],
   'sample-4': [
     [30, 32, 47, 43], [71, 19, 14, 37], [1, 1, 63, 39],
-    [0, 9, 40, 90], [65, 45, 34, 24]
+    [0, 9, 40, 90], [61, 45, 26, 20]
   ],
   'sample-5': [
-    [44, 4, 15, 23], [59, 4, 7, 24], [54, 13, 6, 15], [68, 0, 8, 28],
-    [24, 11, 10, 20], [54, 36, 16, 22], [16, 70, 11, 25],
-    [24, 70, 15, 29], [35, 65, 13, 30], [46, 68, 16, 31],
-    [58, 69, 13, 26], [55, 60, 18, 23], [27, 39, 23, 21]
+    [9, 0, 16, 31], [24, 11, 10, 20], [44, 8, 7, 19],
+    [51, 3, 8, 24], [55, 13, 5, 15], [59, 4, 7, 24], [68, 0, 8, 28],
+    [12, 42, 14, 25], [20, 52, 15, 10], [28, 40, 15, 19],
+    [36, 41, 13, 18], [54, 43, 14, 16], [49, 32, 7, 18], [54, 36, 9, 11],
+    [16, 70, 9, 26], [24, 68, 16, 32], [35, 65, 13, 30],
+    [46, 68, 16, 32], [55, 60, 18, 23], [58, 70, 13, 30]
   ],
   'sample-6': [
     [69, 24, 28, 44], [30, 24, 19, 56], [50, 46, 20, 45],
@@ -166,7 +186,8 @@ const SAMPLE_BOXES = {
   ],
   'sample-9': [
     [2, 52, 70, 34], [65, 50, 32, 33], [43, 10, 44, 39],
-    [40, 42, 51, 13], [27, 16, 22, 37]
+    [2, 7, 15, 32], [16, 12, 13, 35], [26, 15, 19, 39],
+    [40, 42, 51, 13]
   ],
   'sample-10': [
     [44, 40, 34, 19], [47, 4, 32, 36], [9, 40, 34, 35],
@@ -218,8 +239,15 @@ export function sampleAnnotations(id) {
       width <= 0 || height <= 0 || left + width > 100 || top + height > 100) {
       throw new Error(`Invalid annotation bounds for ${id}, product ${index + 1}.`);
     }
-    return { productId: items[index].id, number: index + 1, left, top, width, height };
+    const bounds = getSample(id).rotation === 90
+      ? { left: 100 - top - height, top: left, width: height, height: width }
+      : { left, top, width, height };
+    return { productId: items[index].id, number: index + 1, ...bounds };
   });
+}
+
+export function sampleDisplaySize(entry) {
+  return entry.rotation === 90 ? { width: entry.height, height: entry.width } : { width: entry.width, height: entry.height };
 }
 
 export function sampleDetections(id) {

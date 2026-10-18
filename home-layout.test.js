@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ROOMS, STORAGE_SPOTS, storageSpot, storageShelf, shelvesFor, validStorageSpot, spotLabel, placementLabel } from './home-layout.js';
 import { initialState, validItem, validateState, addItems } from './domain.js';
-import { homeHTML } from './home-view.js';
+import { homeHTML, resolveHomeView } from './home-view.js';
 
 test('demo layout has unique compatible storage spots in four rooms', () => {
   assert.equal(ROOMS.length, 4);
@@ -50,13 +50,12 @@ test('home view highlights exactly the selected spot, distinguishes suggestions,
   const inventory = initialState().inventory;
   const selected = { ...inventory[0], brand: '<script>', storageSpot: 'kitchen-fridge' };
   const html = homeHTML([selected], selected.id, () => '');
-  assert.equal((html.match(/home-box is-target/g) || []).length, 1);
-  assert.ok(html.includes('Kitchen / Refrigerator'));
-  assert.ok(html.includes('Saved placement'));
+  assert.equal((html.match(/home-storage-card selected-storage/g) || []).length, 1);
+  assert.ok(html.includes('Storage saved. Shelf not assigned.'));
   assert.ok(html.includes('&lt;script&gt;'));
   assert.ok(!html.includes('<script>'));
   assert.ok(homeHTML(inventory, inventory[0].id, () => '').includes('not yet confirmed'));
-  assert.ok(!homeHTML(inventory, 'removed-id', () => '').includes('food-beacon'));
+  assert.ok(!homeHTML(inventory, 'removed-id', () => '').includes('home-location-banner'));
   assert.ok(homeHTML([], '', () => '').includes('Your inventory is empty'));
 });
 
@@ -102,18 +101,60 @@ test('food on different or unassigned shelves never merges; same shelf does', ()
   assert.equal(item.quantity, initialState().inventory[0].quantity);
 });
 
-test('selected shelf is highlighted in both views and food is only shown on saved layers', () => {
+test('selected shelf is highlighted and food is only shown on saved layers', () => {
   const first = { ...initialState().inventory[0], storageSpot: 'kitchen-fridge', storageShelf: 'middle' };
   const second = { ...initialState().inventory[1], storageSpot: 'kitchen-fridge', storageShelf: 'top' };
   const html = homeHTML([first, second], first.id, () => '<span>food</span>');
-  assert.equal((html.match(/model-shelf target-shelf/g) || []).length, 1);
   assert.equal((html.match(/cutaway-layer selected-layer/g) || []).length, 1);
   assert.ok(html.includes('Kitchen / Refrigerator / Middle shelf'));
   assert.ok(html.includes('data-home-select="seed-milk"'));
-  assert.ok(html.includes('--food-height:19'));
-  assert.ok(!html.includes('class="home-food-marker"'));
+  assert.ok(html.includes('Fresh milk'));
+  assert.ok(!html.includes('home-viewport'));
+  assert.ok(!html.includes('type="range"'));
   const legacy = homeHTML(initialState().inventory, first.id, () => '');
   assert.ok(legacy.includes('No shelf is assumed'));
   assert.ok(!legacy.includes('selected-layer'));
-  assert.ok(!legacy.includes('class="shelf-product'));
+  const layers = legacy.slice(legacy.indexOf('class="cutaway-body"'), legacy.indexOf('class="cutaway-plinth"'));
+  assert.ok(!layers.includes('class="shelf-product'));
+  assert.ok(legacy.includes('Suggested placements'));
+});
+
+test('room and storage navigation resolve consistently without needing to select food', () => {
+  const inventory = initialState().inventory;
+  assert.equal(resolveHomeView(inventory, '').spot.id, 'kitchen-fridge');
+  for (const spot of STORAGE_SPOTS) {
+    const resolved = resolveHomeView(inventory, '', { room: spot.room, spotId: spot.id });
+    assert.equal(resolved.room, spot.room);
+    assert.equal(resolved.spot.id, spot.id);
+    assert.equal(resolved.item, null);
+    assert.ok(resolved.spots.every(entry => entry.room === spot.room));
+  }
+  assert.equal(resolveHomeView(inventory, '', { room: 'Study', spotId: 'kitchen-fridge' }).spot.id, 'study-desk');
+  assert.equal(resolveHomeView(inventory, '', { room: 'Missing', spotId: 'missing' }).spot.id, 'kitchen-fridge');
+  const selected = resolveHomeView(inventory, 'seed-pasta', { room: 'Study' });
+  assert.equal(selected.spot.id, 'pantry-shelves');
+  assert.equal(selected.room, 'Pantry room');
+  assert.equal(selected.shelf, null);
+});
+
+test('all rooms and storage can be browsed with no inventory and saved data is never changed', () => {
+  const inventory = initialState().inventory;
+  const before = JSON.stringify(inventory);
+  for (const spot of STORAGE_SPOTS) {
+    const html = homeHTML(inventory, '', () => '', { room: spot.room, spotId: spot.id });
+    assert.ok(html.includes(`id="interior-title">${spot.name}`));
+    assert.equal((html.match(/cutaway-layer /g) || []).length, shelvesFor(spot).length);
+    assert.equal((html.match(/class="home-room-card /g) || []).length, 4);
+  }
+  assert.equal(JSON.stringify(inventory), before);
+  assert.ok(homeHTML([], '', () => '', { room: 'Study' }).includes('Desktop'));
+});
+
+test('quick find includes all inventory and searches full product labels and shelf locations', () => {
+  const inventory = [{ ...initialState().inventory[0], storageSpot: 'kitchen-fridge', storageShelf: 'crisper' }];
+  const html = homeHTML(inventory, '', () => '');
+  assert.ok(html.includes('data-home-query="unbranded | avocados | produce kitchen / refrigerator / crisper drawer"'));
+  assert.ok(html.includes('id="home-no-results" hidden'));
+  assert.ok(html.includes('aria-controls="home-food-list"'));
+  assert.ok(html.includes('Suggested placements') === false);
 });

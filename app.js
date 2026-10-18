@@ -1,5 +1,5 @@
 import { CATEGORIES, LOCATIONS, STORAGE_KEY, dateAfter, daysUntil, initialState, BARCODE_PRODUCTS, addItems, validateState, validItem, statistics, normalizeProduct, normalizeWorkspace, productLabel } from './domain.js';
-import { SAMPLES, getSample, sampleDetections, sampleAnnotations } from './samples.js';
+import { SAMPLES, getSample, sampleDetections, sampleAnnotations, sampleDisplaySize } from './samples.js';
 import { STORAGE_SPOTS, shelvesFor, spotLabel, placementLabel } from './home-layout.js';
 import { homeHTML, mountHome } from './home-view.js';
 
@@ -76,7 +76,7 @@ let choosingSample = false;
 let scanTimer;
 let exportUrl = null;
 let homeSelectedId = '';
-let unmountHome;
+let homeNavigation = {};
 
 function toast(message) {
   const element = document.querySelector('#toast');
@@ -139,12 +139,13 @@ function scanHTML() {
   const busy = scanStatus === 'scanning';
   const ready = scanStatus === 'ready';
   const saved = scanStatus === 'saved';
+  const display = sampleDisplaySize(activeSample);
   return `<div class="scanner-layout">
     <section class="card scanner-card" aria-labelledby="scanner-title">
       <div class="card-header"><div class="section-title">${icon('scan')}<h2 id="scanner-title">Your kitchen, in focus</h2></div><span class="subtle-pill">${icon('sparkle')} Smart scanner</span></div>
       <div class="scan-canvas sample-scene ${busy ? 'is-scanning' : ''} ${ready || saved ? 'has-results' : ''}">
-        <div class="photo-frame sample-photo-frame" style="aspect-ratio:${activeSample.width} / ${activeSample.height};width:${Math.min(100, activeSample.width / activeSample.height / 1.45 * 100)}%">
-          <img src="/${encodeURI(activeSample.file)}" alt="${escape(activeSample.title)}; bundled demo photo, results are simulated" class="grocery-image">
+        <div class="photo-frame sample-photo-frame" style="aspect-ratio:${display.width} / ${display.height};width:${Math.min(100, display.width / display.height / 1.45 * 100)}%">
+          ${sampleImageHTML(activeSample, `${activeSample.title}; bundled demo photo, results are simulated`, 'grocery-image')}
           ${ready || saved ? annotationHTML() : ''}
         </div>
         <span class="photo-tag">${icon('image')}${escape(activeSample.title)}</span>
@@ -202,17 +203,24 @@ function insightsPage() {
 }
 
 function render() {
-  unmountHome?.();
-  unmountHome = null;
-  const names = { scanner: 'Overview', inventory: 'My inventory', home: 'My 3D home', shopping: 'Shopping list', insights: 'Kitchen insights' };
+  const names = { scanner: 'Overview', inventory: 'My inventory', home: 'My home', shopping: 'Shopping list', insights: 'Kitchen insights' };
   document.querySelector('#breadcrumb-current').textContent = names[page];
   document.title = `${names[page]} — VisionStock`;
   updateSidebar();
-  main.innerHTML = `${!storageAvailable ? '<div class="storage-warning" role="alert">Browser storage is unavailable. Your changes are in memory only. Export them from Kitchen insights before closing.</div>' : ''}${page === 'scanner' ? scannerPage() : page === 'home' ? homeHTML(state.inventory, homeSelectedId, thumb) : page === 'inventory' ? `<div class="page-heading"><div><span class="eyebrow">${icon('box')} A HOME FOR YOUR GROCERIES</span><h1>A little more organized<span>.</span></h1><p>Keep the good stuff in sight, and the forgotten things to a minimum.</p></div><a class="button primary" href="#scanner">${icon('scan')}Scan groceries</a></div>${statsHTML()}${inventoryHTML(true)}` : page === 'shopping' ? shoppingPage() : insightsPage()}`;
-  if (page === 'home') unmountHome = mountHome(main, id => {
+  main.innerHTML = `${!storageAvailable ? '<div class="storage-warning" role="alert">Browser storage is unavailable. Your changes are in memory only. Export them from Kitchen insights before closing.</div>' : ''}${page === 'scanner' ? scannerPage() : page === 'home' ? homeHTML(state.inventory, homeSelectedId, thumb, homeNavigation) : page === 'inventory' ? `<div class="page-heading"><div><span class="eyebrow">${icon('box')} A HOME FOR YOUR GROCERIES</span><h1>A little more organized<span>.</span></h1><p>Keep the good stuff in sight, and the forgotten things to a minimum.</p></div><a class="button primary" href="#scanner">${icon('scan')}Scan groceries</a></div>${statsHTML()}${inventoryHTML(true)}` : page === 'shopping' ? shoppingPage() : insightsPage()}`;
+  if (page === 'home') mountHome(main, id => {
     homeSelectedId = id;
+    homeNavigation = {};
     render();
-    main.querySelector('#home-food').focus();
+    const detail = main.querySelector('#interior-title');
+    detail.setAttribute('tabindex', '-1');
+    detail.focus({ preventScroll: true });
+    detail.scrollIntoView({ block: 'nearest' });
+  }, (navigation, focusSelector) => {
+    homeSelectedId = '';
+    homeNavigation = navigation;
+    render();
+    main.querySelector(focusSelector).focus({ preventScroll: true });
   });
   enhanceInventoryLocations();
 }
@@ -316,7 +324,19 @@ function beginScan() {
 
 function chooseSample() {
   if (scanStatus === 'scanning') throw new Error('Wait for the current scan to finish before changing samples.');
-  showModal('Choose a sample photo', `<p class="modal-intro">Explore ${SAMPLES.length} bundled scenes. Each has different, editable preset results. Selecting a photo clears unsaved scan results; your inventory is unchanged. External images cannot be imported.</p><div class="sample-grid">${SAMPLES.map(entry => `<button class="sample-option ${entry.id === activeSample.id ? 'selected' : ''}" data-action="select-sample" data-id="${entry.id}" aria-pressed="${entry.id === activeSample.id}"><img src="/${encodeURI(entry.file)}" alt="" loading="lazy"><strong>${escape(entry.title)}</strong><span>${entry.id === activeSample.id ? 'Selected' : 'Use this sample'}</span></button>`).join('')}</div><p id="sample-status" class="modal-intro" role="status"></p>`, 'sample-modal');
+  showModal('Choose a sample photo', `<p class="modal-intro">Explore ${SAMPLES.length} bundled scenes. Each has different, editable preset results. Selecting a photo clears unsaved scan results; your inventory is unchanged. External images cannot be imported.</p><div class="sample-grid">${SAMPLES.map(entry => `<button class="sample-option ${entry.id === activeSample.id ? 'selected' : ''}" data-action="select-sample" data-id="${entry.id}" aria-pressed="${entry.id === activeSample.id}">${sampleThumbnailHTML(entry)}<strong>${escape(entry.title)}</strong><span>${entry.id === activeSample.id ? 'Selected' : 'Use this sample'}</span></button>`).join('')}</div><p id="sample-status" class="modal-intro" role="status"></p>`, 'sample-modal');
+}
+
+function sampleImageHTML(entry, alt, className = '') {
+  const display = sampleDisplaySize(entry);
+  const style = entry.rotation === 90 ? ` style="position:absolute;left:50%;top:50%;width:${entry.width / display.width * 100}%;height:${entry.height / display.height * 100}%;max-width:none;transform:translate(-50%,-50%) rotate(90deg)"` : '';
+  return `<img src="/${encodeURI(entry.file)}" alt="${escape(alt)}" class="${className}"${style}>`;
+}
+
+function sampleThumbnailHTML(entry) {
+  if (entry.rotation !== 90) return `<img src="/${encodeURI(entry.file)}" alt="" loading="lazy">`;
+  const display = sampleDisplaySize(entry);
+  return `<span class="rotated-sample-thumbnail" style="aspect-ratio:${display.width}/${display.height}">${sampleImageHTML(entry, '')}</span>`;
 }
 
 async function selectSample(id) {
@@ -426,6 +446,7 @@ const actions = {
     inventoryFilter = 'All items';
     search = '';
     homeSelectedId = '';
+    homeNavigation = {};
     activeSample = getSample('basket');
     scanSource = 'Sample';
     closeModal();
