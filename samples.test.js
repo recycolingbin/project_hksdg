@@ -176,14 +176,16 @@ test('Media 9 contains corrected frozen products and counts without replacing th
     ['CJ', 'Mushroom pilaf', 1],
     ['Tender Max', 'Sous vide chicken steak', 3],
     ['Osaka Ohsho', 'Dumplings', 1],
-    ['Fuyan', 'Black sesame ice cream', 1],
+    ['Fuyuan', 'Black sesame ice cream', 2],
     ['Amoy', 'Black Gold salted egg yolk paste buns', 1],
     ['Osaka Ohsho', 'Crispy Bite gyoza (18 pcs)', 1]
   ]);
   assert.ok(items.every(item => item.location === 'Freezer' && item.estimated));
   assert.equal(items[4].category, 'Dairy & eggs');
-  assert.equal(items.reduce((sum, item) => sum + item.quantity, 0), 9);
-  assert.equal(addItems([], items).length, 7);
+  assert.equal(items.reduce((sum, item) => sum + item.quantity, 0), 10);
+  const saved = addItems([], items);
+  assert.equal(saved.length, 7);
+  assert.equal(saved.find(item => item.brand === 'Fuyuan').quantity, 2);
 });
 
 test('Media 9 rotates 90 degrees clockwise with swapped display dimensions and aligned boxes', () => {
@@ -194,7 +196,7 @@ test('Media 9 rotates 90 degrees clockwise with swapped display dimensions and a
   assert.deepEqual(
     boxes.map(({ left, top, width, height }) => [left, top, width, height]),
     [[14, 2, 34, 70], [17, 65, 33, 32], [51, 43, 39, 44],
-      [61, 2, 32, 15], [53, 16, 35, 13], [46, 26, 39, 19], [45, 40, 13, 51]]
+      [61, 2, 32, 15], [53, 9, 35, 20], [46, 26, 39, 19], [45, 40, 13, 51]]
   );
   for (const other of SAMPLES.filter(sample => sample.id !== entry.id)) {
     assert.deepEqual(sampleDisplaySize(other), { width: other.width, height: other.height });

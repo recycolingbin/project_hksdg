@@ -47,7 +47,7 @@ export const SAMPLES = [
     product('CJ mushroom pilaf', 1, 'Pantry', 'Freezer', 90, 'rice'),
     normalizeProduct({ brand: 'Tender Max', name: 'Sous vide chicken steak', quantity: 3, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' }),
     normalizeProduct({ brand: 'Osaka Ohsho', name: 'Dumplings', quantity: 1, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' }),
-    normalizeProduct({ brand: 'Fuyan', name: 'Black sesame ice cream', quantity: 1, category: 'Dairy & eggs', location: 'Freezer', days: 90, icon: 'yogurt' }),
+    normalizeProduct({ brand: 'Fuyuan', name: 'Black sesame ice cream', quantity: 2, category: 'Dairy & eggs', location: 'Freezer', days: 90, icon: 'yogurt' }),
     normalizeProduct({ brand: 'Amoy', name: 'Black Gold salted egg yolk paste buns', quantity: 1, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' }),
     normalizeProduct({ brand: 'Osaka Ohsho', name: 'Crispy Bite gyoza (18 pcs)', quantity: 1, category: 'Pantry', location: 'Freezer', days: 90, icon: 'box' })
   ], 90),
@@ -186,7 +186,7 @@ const SAMPLE_BOXES = {
   ],
   'sample-9': [
     [2, 52, 70, 34], [65, 50, 32, 33], [43, 10, 44, 39],
-    [2, 7, 15, 32], [16, 12, 13, 35], [26, 15, 19, 39],
+    [2, 7, 15, 32], [9, 12, 20, 35], [26, 15, 19, 39],
     [40, 42, 51, 13]
   ],
   'sample-10': [
